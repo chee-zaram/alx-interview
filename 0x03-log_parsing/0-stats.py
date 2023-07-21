@@ -3,7 +3,6 @@
 This is the `0-stats` module. It is meant to be a log parser.
 """
 import re
-from typing import Dict
 
 
 # total_size is the total size of all the files processed.
@@ -12,16 +11,23 @@ total_size = 0
 # status_code_dict is a dictionary of the status codes and their count
 # across all files. The status codes are used as keys, and their count values.
 status_code_dict = {
-    200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0,
+    200: 0,
+    301: 0,
+    400: 0,
+    401: 0,
+    403: 0,
+    404: 0,
+    405: 0,
+    500: 0,
 }
 
 # pp are the pattern parts.
 pp = (
     r'^\b(?:\d{1,3}\.){3}\d{1,3}\b',
-    r'\s-\s',
-    r'\[.+\]\s',
-    r'"GET /projects/260 HTTP/1\.1"\s',
-    r'(?P<status_code>\d{3}) (?P<file_size>\d+)$'
+    r'\s+-\s+',
+    r'\[\d{4}-\d{2}-\d{2}\s+(?:\d{2}:){2}\d{2}\.\d+\]\s+',
+    r'"GET /projects/260 HTTP/1\.1"\s+',
+    r'(?P<status_code>\d{3})\s+(?P<file_size>\d+)$'
 )
 # line_pattern is the regex pattern to match the lines in the files.
 line_pattern = re.compile(
@@ -29,7 +35,7 @@ line_pattern = re.compile(
 )
 
 
-def print_stats(total_size: int, status_code_dict: Dict) -> None:
+def print_stats() -> None:
     """
     print_stats prints the stats.
     """
@@ -43,7 +49,7 @@ def print_stats(total_size: int, status_code_dict: Dict) -> None:
 def compute_stats(line_no: int, line: str) -> None:
     """
     compute_stats keeps track of the total size and the count of each
-    status code.
+    status code. It prints the stats after every 10 lines processed.
     """
     try:
         match = line_pattern.match(line)
@@ -62,7 +68,7 @@ def compute_stats(line_no: int, line: str) -> None:
             status_code, 0) + 1
 
         if line_no % 10 == 0:
-            print_stats(total_size, status_code_dict)
+            print_stats()
     except ValueError:
         return
 
@@ -70,8 +76,9 @@ def compute_stats(line_no: int, line: str) -> None:
 def parse_lines() -> None:
     """
     parse_lines parses each line in the logs and computes the stats.
+    It prints the stats after every 10 lines processed, or when a
+    KeyboardInterrupt is encountered.
     """
-    global total_size
     try:
         line_no = 0
         while True:
@@ -79,7 +86,7 @@ def parse_lines() -> None:
             line_no += 1
             compute_stats(line_no, line)
     except (KeyboardInterrupt, EOFError):
-        print_stats(total_size, status_code_dict)
+        print_stats()
 
 
 if __name__ == "__main__":
