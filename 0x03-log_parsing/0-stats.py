@@ -71,6 +71,7 @@ def parse_lines() -> None:
     """
     parse_lines parses each line in the logs and computes the stats.
     """
+    global total_size
     try:
         line_no = 0
         while True:
